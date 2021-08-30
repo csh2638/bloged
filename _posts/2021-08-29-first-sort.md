@@ -2,7 +2,7 @@
 layout: post
 title: "[알고리즘] 정렬 (선택 정렬, 삽입 정렬, 퀵 정렬, 계수 정렬)"
 categories: 알고리즘
-tags: [python, algolithm, sort]
+tags: [python, algorithm, sort]
 ---
 
 ## 정렬 (선택 정렬, 삽입 정렬, 퀵 정렬, 계수 정렬)

@@ -2,7 +2,7 @@
 layout: post
 title: "[알고리즘] 탐색 알고리즘 DFS/BFS"
 categories: 알고리즘
-tags: [python, algolithm, DFS/BFS algolythm]
+tags: [python, algorithm, DFS/BFS algolythm]
 ---
 
 ##  탐색 알고리즘 DFS/BFS

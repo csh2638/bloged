@@ -3,7 +3,7 @@ layout: post
 title: "[알고리즘] 소수 판별하기 "
 subtitle: Prime number...
 categories: 알고리즘
-tags: [python, algolithm, prime number]
+tags: [python, algorithm, prime number]
 ---
 ##  소수(Prime Number)
 소수는 2보다 큰 자연수 중 1과 자기자신을 제외한 자연수로는 나누어 떨어지지 않는 자연수다.<br>ex)2, 3, 5, 7, 11....<br>

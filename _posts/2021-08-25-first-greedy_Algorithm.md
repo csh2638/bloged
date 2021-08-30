@@ -3,7 +3,7 @@ layout: post
 title: "[알고리즘] 그리디 알고리즘(Greedy Algorithm)"
 subtitle: 탐욕, 욕심쟁이 알고리즘
 categories: 알고리즘
-tags: [python, algolithm, greedy algolythm]
+tags: [python, algorithm, greedy algolythm]
 ---
 
 ##  그리디 알고리즘 (Greedy Algorithm)

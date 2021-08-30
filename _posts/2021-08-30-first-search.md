@@ -2,7 +2,7 @@
 layout: post
 title: "[알고리즘] 탐색 (순차 탐색, 이진 탐색, 트리 자료구조)"
 categories: 알고리즘
-tags: [python, algolithm, search]
+tags: [python, algorithm, search]
 ---
 
 ## 탐색 (순차 탐색, 이진 탐색)
