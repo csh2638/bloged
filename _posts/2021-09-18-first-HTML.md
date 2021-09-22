@@ -1,11 +1,11 @@
 ---
 layout: post
-title: "[HTML] HTML 정리"
+title: "[HTML] Hyper Text Makrup Language"
 categories: HTML
 tags: [HTML]
 ---
 
-# HTML (Hyper Text Markup Language)
+## HTML (Hyper Text Markup Language)
 
 ***HTML***은 Hyper Text Markup Language의 약자로 웹 페이지를 구성하기 위해 제목, 단락, 목록 등과 같은 것들을 정해진 서식을 통해 구조적인 문서로 만들 수 있게 해주는 마크업 언어이다. HTML에서 어디선가 많이 들어본 단어가 있다. 바로 **마크업 언어**이다.
 지금 이 글을 작성하는데 사용하는게 **마크다운 언어**이다. 그렇다면 마크업 언어와 마크다운 언어의 차이가 무엇일까?
@@ -35,15 +35,13 @@ HTML의 구조를 살펴보면 제일 위에 <!DOCTYPE html>이 있다. 이는 �
 
 tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양한 기능을 수행한다. 자주 쓰일 것 같은 Html 태그를 정리해 보았다.(ctrl+F)로 찾기.
 
-1.\<!-- --> 주석
+1. \<!-- --> 주석
 
 ~~~html
 <!--"주석 내용"-->
 ~~~
 
-</br>
-
-2.\<a> 하이퍼링크 
+2. \<a> 하이퍼링크 
 
 ~~~html
 <a href="https://csh2638.github.io/">내 블로그로 이동</a>
@@ -54,9 +52,7 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 |href|URL|링크의 좌표를 명시함.|
 |type|미디어 타입|링크된 문서의 미디어 타입을 명시|
 
-</br>
-
-3.\<area> 이미지에서 하이퍼링크가 연결될 영역 정의(이미지에 하이퍼링크 적용)
+3. \<area> 이미지에서 하이퍼링크가 연결될 영역 정의(이미지에 하이퍼링크 적용)
 
 ~~~html
 <img src="/examples/images/img_imagemap.jpg" alt="블로그 이동" usemap="#html" style="width:100px; height:100px">
@@ -65,7 +61,6 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 </map>
 ~~~
 
-
 |속성명|속성값|설명|
 |:---:|:---:|:---:|
 |alt|텍스트|이미지가 나오지 않을때 나오는 대체 텍스트|
@@ -73,9 +68,7 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 |href|URL|해당 영역에 연결된 하이퍼링크의 대상 URL을 명시|
 |shape|default,rect,circle,poly|영역의 모양 명시
 
-</br>
-
-4.\<audio> 음악이나 사운드를 정의
+4. \<audio> 음악이나 사운드를 정의
 
 ~~~html
 <audio controls>
@@ -92,9 +85,7 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 |preload|auto,metadata,none|페이지가 로드될때 사운드 파일이 같이 로드되어야 하는지 여부와 방법을 명시|
 |src|URL|사운드 파일의 위치를 URL로 명시|
 
-</br>
-
-5.\<br /> 줄바꿈
+5. \<br /> 줄바꿈
 
 ~~~html
 <p>
@@ -104,9 +95,7 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 </p>
 ~~~
 
-<br>
-
-6.\<button> 버튼
+6. \<button> 버튼
 
 ~~~html
 <button type="button" onclick="alert('확인을 누르셨습니다.')">확인</button>
@@ -122,9 +111,7 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 |type|button,reset,submit|버튼의 타입을 명시|
 |value|텍스트|버튼의 초기값을 명시|
 
-<br>
-
-7.\<datalist> 텍스트박스에서 선택할 수 있는 리스트를 드롭다운 형식으로 보여줌
+7. \<datalist> 텍스트박스에서 선택할 수 있는 리스트를 드롭다운 형식으로 보여줌
 
 ~~~html
     좋아하는 과일 : <input type="text" name="fruit" list="fruit_list"><br>
@@ -139,9 +126,7 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 </form>
 ~~~
 
-<br>
-
-8.\<details> 접기, 펴기를 이용해 글을 숨기거나 보여줌
+8. \<details> 접기, 펴기를 이용해 글을 숨기거나 보여줌
 
 ~~~html
 <details>
@@ -154,13 +139,9 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 |:---:|:---:|:---:|
 |open|open|\<details>요소가 사용자에게 보이도록 펼처지는 것을 명시|
 
-<br>
+9. \<div> 특정 영역이나 구획을 정할때 사용, 블록으로 나누고자 할때
 
-9,\<div> 특정 영역이나 구획을 정할때 사용, 블록으로 나누고자 할때
-
-<br>
-
-10.\<fieldset> \<form>요소에서 관련된 요소들을 하나의 그룹으로 묶을때 사용
+10. \<fieldset> \<form>요소에서 관련된 요소들을 하나의 그룹으로 묶을때 사용
 
 ~~~html
   <fieldset>
@@ -176,9 +157,7 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 |disabled|disabled|fieldset에 포함된 요소들이 비활성화됨을 명시|
 |name|이름|fieldset의 이름을 명시|
 
-<br>
-
-11.\<form> 사용자로부터 입력을 받을 수 있는 HTLM 입력 폼(form)을 정의할 때 사용.
+11. \<form> 사용자로부터 입력을 받을 수 있는 HTLM 입력 폼(form)을 정의할 때 사용.
 
 \<button>\<fieldset>\<input>\<label>\<option>\<optgroup>\<select>\<textarea> 중 하나 이상을 포함할 수 있다.
 
@@ -199,9 +178,7 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 |name|텍스트|\<form>의 이름을 명시|
 |novalidate|novalidate|폼 데이터가 서버로 제출될 때 해당 데이터의 유효성 검사를 하지 않음을 명시|
 
-<br>
-
-12.\<head> 문서에 대한 정보인 메타데이터의 집합을 정의할때 사용
+12. \<head> 문서에 대한 정보인 메타데이터의 집합을 정의할때 사용
 
 ~~~html
 <!DOCTYPE html>
@@ -215,9 +192,7 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 </html>
 ~~~
 
-<br>
-
-13.\<h1> ~ \<h6> 문서에서 제목을 정의할때 사용. 숫자와 글자 크기가 비례한다.
+13. \<h1> ~ \<h6> 문서에서 제목을 정의할때 사용. 숫자와 글자 크기가 비례한다.
 
 ~~~html
 <h1>h1</h1>
@@ -228,9 +203,7 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 <h6>h6</h6>
 ~~~
 
-<br>
-
-14.\<html> HTML요소를 포함하기 위한 컨테이너이며, 브라우저가에게 해당 문서가 HTML문서임을 알려주는 역할을 한다.
+14. \<html> HTML요소를 포함하기 위한 컨테이너이며, 브라우저가에게 해당 문서가 HTML문서임을 알려주는 역할을 한다.
 
 ~~~html
 <!DOCTYPE html>
@@ -244,9 +217,7 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 </html>
 ~~~
 
-<br>
-
-15.\<iframe> 인라인 프레임을 정의할때 사용. 현재 HTML에 다른 문서를 포함시킬때 사용.
+15. \<iframe> 인라인 프레임을 정의할때 사용. 현재 HTML에 다른 문서를 포함시킬때 사용.
 
 ~~~html
 <iframe src="https://csh2638.github.io">
@@ -260,9 +231,7 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 |srcdoc|HTML코드|\<iframe>요소에 보일 웹 페이지의 HTML코드를 명시|
 |width|픽셀|\<iframe>요소의 너비를 명시|
 
-<br>
-
-16\<img> HTML문서에서 이미지를 정의할때 사용. 반드시 src, alt 속성 명시
+16. \<img> HTML문서에서 이미지를 정의할때 사용. 반드시 src, alt 속성 명시
 
 ~~~html
 <img src="/경로/그림.png" alt="그림이름">
@@ -277,9 +246,7 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 |src|URL|이미지 소스의 URL을 명시|
 |width|픽셀|이미지의 너비를 명시함|
 
-<br>
-
-17.\<input> 사용자로부터 입력받을 수 있는 input filed를 정의할때 사용. input field를 선언하기 위해 form 내부에서 사용됨
+17. \<input> 사용자로부터 입력받을 수 있는 input filed를 정의할때 사용. input field를 선언하기 위해 form 내부에서 사용됨
 
 ~~~html
 <form action="./login.html">
@@ -308,9 +275,7 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 |value|텍스트|input의 초기값을 명시|
 |width|픽셀|input의 너비를 픽셀 단위로 명시|
 
-<br>
-
-18.\<label> 사용자 인터페이스 요소의 라벨을 정의할때 사용
+18. \<label> 사용자 인터페이스 요소의 라벨을 정의할때 사용
 
 ~~~html
 <form action="select_age.html" method="get">
@@ -327,9 +292,7 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 </form>
 ~~~
 
-<br>
-
-19.\<meta> 해당 문서에 대한 정보인 메타데이터를 정의할때 사용. 반드시 head태그 내부에 위치해야 한다.
+19. \<meta> 해당 문서에 대한 정보인 메타데이터를 정의할때 사용. 반드시 head태그 내부에 위치해야 한다.
 
 ~~~html
 <head>
@@ -349,7 +312,7 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 |http-equiv|content-type<br>default-style<br>refresh|content 속성에 명시된 값에 대한 HTTP 헤더를 제공함.|
 |name|application-name<br>author<br>description<br>generator<br>keywords<br>viewport|메타데이터를 위한 이름을 명시
 
-20.\<meter> 분수 값이나 게이지 내에서 특정 스칼라 값이 어느 정도인지 표현할때 사용
+20. \<meter> 분수 값이나 게이지 내에서 특정 스칼라 값이 어느 정도인지 표현할때 사용
 
 ~~~html
 <p>디스크 사용량 : <meter min="0" max="1000" value="350">350GB</meter></p>
@@ -365,9 +328,7 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 |optimum|숫자|게이지의 최적값을 명시|
 |value|숫자|필수 속성으로 게이지의 현재 또는 측정된 값을 명시|
 
-<br>
-
-21.\<ol> 순서가 있는 HTML리스트를 정의
+21. \<ol> 순서가 있는 HTML리스트를 정의
 
 ~~~html
 <ol>
@@ -389,10 +350,4 @@ tag는 <>로 둘러쌓인 것들로 안에 들어갈 태그명에 따라 다양�
 |start|숫자|순서가 있는 리스트에서 리스트 마커의 시작값을 명시함|
 |type|l<br>A<br>a<br>I<br>i|순서가 있는 리스트에서 리스트 아이템에 사용되는 마커의 종류를 명시|
 
-<br>
-
-
-
-
-[ 참고 페이지 http://tcpschool.com/ ]
- 
+***<a href="http://tcpschool.com/">참고 페이지 : tcpschool</a>***
