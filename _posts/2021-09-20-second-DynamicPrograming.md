@@ -5,7 +5,7 @@ categories: 알고리즘
 tags: [python, algorithm, Dynamic Programing]
 ---
 
-# Dynamic Programing (DP, 동적 계획법) 🤸
+## Dynamic Programing (DP, 동적 계획법) 🤸
 
 다이나믹 프로그래밍은 큰 문제를 작은 문제로 나누고, 같은 문제라면 한 번씩만 풀어 문제를 효율적으로 해결하는 알고리즘 기법이다.<br>
 대표적인 예제인 피보나치 수열을 구하는 함수를 살펴보면 이해하기 수월하다.
