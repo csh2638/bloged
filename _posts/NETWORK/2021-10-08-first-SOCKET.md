@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "[NETWORK] 소켓/윈속"
+title: "[NETWORK] 소켓"
 categories: NETWORK
 tags: [NETWORK, SOCKET]
 ---
