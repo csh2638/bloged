@@ -92,7 +92,7 @@ SOCKET accept(
     SOCKET s,
     struct sockaddr *addr,
     int *addrlen
-)
+);
 ~~~
 
 1. s : 클라이언트 접속을 수용할 목적으로 만든 소켓으로, bind()함수로 지역 IP주소와 지역 포트번호를 설정하고 listen()함수로 포트상태를 LISTENING으로 변경한 상태다.
