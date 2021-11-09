@@ -213,3 +213,61 @@ public class practice {
 ~~~
 
 위 예제에서는 하위 클래스에서 상위 클래스의 생성자를 호출하는 방법인 super()를 사용한다. 이 방법을 사용하면 상위 클래스에 기본 생성자를 따로 선언해 주지 않아도 상위 클래스의 생성자를 호출해 초기화할 수 있다.
+
+
+## overriding
+
+기존의 상속은 상위 클래스의 메소드나 변수 등을 하위 클래스가 extends를 통해 접근할 수 있다. 추가적으로 하위 클래스에서 상위 클래스의 메소드와 동일한 이름을 가진 메소드를 정의하면서 기존 상위 메소드의 동작을 변경할 수 있다. 이렇게 재정의된 메소드는 상위 클래스의 메소드보다 높은 우선순위를 가진다. 이것을 overriding이라고 한다.
+
+
+~~~java
+ 
+class Calc {
+    int left, right;
+ 
+    public void setOprands(int left, int right) {
+        this.left = left;
+        this.right = right;
+    }
+ 
+    public void sum() {
+        System.out.println(this.left + this.right);
+    }
+ 
+    public void avg() {
+        System.out.println((this.left + this.right) / 2);
+    }
+}
+ 
+class SubstractionableCalc extends Calc {
+     
+    public void sum() {
+        System.out.println("실행 결과는 " +(this.left + this.right)+"입니다.");
+    }
+     
+    public int avg() {
+        return (this.left + this.right)/2;
+    }
+     
+    public void substract() {
+        System.out.println(this.left - this.right);
+    }
+}
+ 
+public class practice {
+    public static void main(String[] args) {
+        SubstractionableCalcu c1 = new SubstractionableCalc();
+        c1.setOprands(10, 20);
+        c1.sum();
+        c1.avg();
+        c1.substract();
+    }
+}
+
+~~~
+
+위 예제에서 Calc클래스로 부터 상속받은 SubstractionableCalc클래스를 살펴보면 overriding의 사용방법을 볼 수 있다. sum()메소드는 상위 클래스에서는 left+right의 값을 리턴했다면 하위 클래스에서는 "실행 결과는 " +(this.left + this.right)+"입니다." 를 출력한다. sum()을 호출하게 되면 우선순위에 따라 하위 클래스의 sum()이 실행된다. 만약 상위 클래스와 하위 클래스에서 메소드가 중복될때 super.메소드()를 하위 클래스에 작성함으로써 해결할 수 있다.
+
++ overridng의 전제조건
+
+메소드의 이름, 메소드 매개변수 숫자와 데이터 타입 및 순서, 메소드의 리턴 타입이 모두 같아야 한다. 이와 같은 조건들을 통틀어서 메소드의 서명(signature)라고 한다. 이 서명이 다르면 오류가 발생한다.
