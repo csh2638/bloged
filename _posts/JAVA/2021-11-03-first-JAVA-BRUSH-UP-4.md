@@ -271,3 +271,27 @@ public class practice {
 + overridng의 전제조건
 
 메소드의 이름, 메소드 매개변수 숫자와 데이터 타입 및 순서, 메소드의 리턴 타입이 모두 같아야 한다. 이와 같은 조건들을 통틀어서 메소드의 서명(signature)라고 한다. 이 서명이 다르면 오류가 발생한다.
+
+
+## overloading
+
+같은 이름의 메소드를 선언할 수 있는 방법을 메소드 오버로딩이라고 한다. 이 때 메소드를 구분하는 방법은 매개변수를 이용하는 것이다.
+
+~~~java
+
+public class prac {
+    void A (){System.out.println("void A()");}
+    void A (int arg1){System.out.println("void A (int arg1)");}
+    void A (String arg1){System.out.println("void A (String arg1)");}
+    //int A (){System.out.println("void A()");}
+    public static void main(String[] args) {
+        prac od = new prac();
+        od.A();
+        od.A(1);
+        od.A("hello world");
+    }
+}
+
+~~~
+
+위 예제를 보면 prac 클래스에 A()라는 이름을 가진 여러 메소드들이 있다. 이게 가능한 이유는 메소드마다 각각 다른 매개변수를 가지고 있기 때문이다. 이때 주의해야 할 점은 같은 이름의 메소드, 다른 매개변수를 사용하고 있더라도 리턴형태가 다르면 에러가 발생한다. 
