@@ -287,31 +287,509 @@ WaitForSingleObject()와 WaitForMultiObjects() 함수는 스레드 종료를 기
 
 스레드 핸들을 보유하고 있으면 SuspendThread() 함수를 호출해 해당 스레드 실행을 일시 중지하거나 ResumeThread()함수를 호출해 해당 스레드 실행을 일시 중지하거나 ResumeThread()함수를 호출해 재시작할 수 있다. 윈도우 운영체제는 스레드의 중지 횟수를 관리하는데, 이 값은 SuspendThread() 함수를 호출할때 마다 1씩 증가하고 ResumeThread()함수를 호출할 때 마다 1씩 감소한다. 중지 횟수가 0보다 크면 스레드는 실행 중지 상태에 있게 된다. 따라서 한 스레드에 대해 SuspendThread()함수를 두 번 호출했다면 ResumeThread()함수를 두 번 호출해야 재시작 할 수 있다.
 
+비슷한 기능을 제공하는것으로 sleep()함수가 있다. SuspendThread()함수를 호출한 경우에는 반드시 ResumeThread()함수를 사용해야 스레드가 재시작하지만, sleep()함수를 호출하면 dwMilliseconds로 지정한 시간이 지나면 재시작한다는 차이가 있다.
+
+~~~c++
+
+void Sleep(
+	DWORD dwMilliseconds //밀리초(ms)
+)
+
+~~~
+
+스레드를 이용해 1부터 100까지의 합을 구하는 예제 프로그램.
+
+
+~~~c++
+
+#include <windows.h>
+#include <stdio.h>
+
+int sum = 0;
+
+DWORD WINAPI MyThread(LPVOID arg)
+{
+	int num = (int)arg;
+	for(int i=1; i<=num; i++) sum += i;
+	return 0;
+}
+
+int main(int argc, char *argv[])
+{
+	int num = 100;
+	HANDLE hThread = CreateThread(NULL, 0, MyThread, 
+		(LPVOID)num, CREATE_SUSPENDED, NULL);
+	if(hThread == NULL) return 1;
+
+	printf("스레드 실행 전. 계산 결과 = %d\n", sum);
+	ResumeThread(hThread);
+	WaitForSingleObject(hThread, INFINITE);
+	printf("스레드 실행 후. 계산 결과 = %d\n", sum);
+	CloseHandle(hThread);
+	
+	return 0;
+}
+
+~~~
+
+
+## 2. 멀티스레드 TCP 서버
+
+멀티스레드 TCP 서버의 기본 형태
+
+~~~c++
+
+DWORD WINAPI ProcessClient(LPVOID arg)
+{
+	//3 전달된 소켓 저장
+	SOCKET client_sock = (SOCKET)arg;
+
+	//4 클라이언트 정보 얻기
+	addrlen = sizeof(clientaddr);
+	getpeername(client_sock, (SOCKADDR *)&clientaddr, &addrlen);
+
+	//5 클라이언트 정보 얻기
+	while(1){
+
+	}
+}
+int main(int argc, char *argv[])
+{
+	while(1)
+	{
+		//1 클라이언트 접속 수용
+		client_sock = accept(listen.sock....);
+
+		//2 스레드 생성
+		CreateThread(NULL, 0, ProcessClient, (LPVOID)client_sock, 0, NULL);
+
+	}
+}
+
+~~~
+
+1. 클라이언트가 접속하면 accept() 함수는 클라이언트와 통신할 수 있는 소켓을 리턴한다.
+2. 클라이언트와 통신을 담당할 스레드를 생성한다. 이때 스레드 함수에 소켓을 넘겨준다.
+3. 스레드 함수는 인자로 전달된 소켓을 SOCKET타입으로 형변환(casting)하여 저장해둔다.
+4. getpeername()함수를 호출해 클라이언트의 IP주소와 포트 번호를 얻는다. 이 코스는 필수는 아니며 클라이언트 정보 출력을 원할때만 필요하다.
+5. 클라이언트와 데이터를 주고 받는다.
+
+스레드 함수에 소켓만 전달한 경우에는 별도에 주소 정보가 없으므로, 소켓을 통해 주소 정보를 얻는 기능이 필요하다. 이런 경우를 위해 다음 두 소켓 함수가 준비되어 있다.
+
+~~~c++
+
+int getpeername(
+	SOCKET s,
+	struct sockaddr *name
+	int *namelen
+);
+	
+~~~
+
+
+~~~c++
+
+int getsockname(
+	SOCKET s,
+	struct sockaddr *name,
+	int *namelen
+)
+
+~~~
+
+getpeername() 함수는 소켓 데이터 구조체에 저장된 원격 ip주소와 원격 포트번호를 리턴하고, getsockname()함수는 지역 IP주소와 지역 포트번호를 리턴한다. 두 함수 모두 첫 번째 인자로 소켓, 두 번째 인자로 소켓 주소 구조체, 세 번째 인자로 소켓 주소 구조체의 크기를 전다랗면 된다. 세 번째 인자는 값-결과 인자(value-result argument)므로 함수 호출전에 초기화를 해줘야 한다.
+
+TCPServer에 멀티스레트 기법을 적용하여, 접속한 클라이언트마다 스레드를 하나씩 생성해 처리하는 프로그램
+
+~~~c++
+
+#pragma comment(lib, "ws2_32")
+#include <winsock2.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#define SERVERPORT 9000
+#define BUFSIZE    512
+
+// 소켓 함수 오류 출력 후 종료
+void err_quit(char *msg)
+{
+	LPVOID lpMsgBuf;
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)&lpMsgBuf, 0, NULL);
+	MessageBox(NULL, (LPCTSTR)lpMsgBuf, msg, MB_ICONERROR);
+	LocalFree(lpMsgBuf);
+	exit(1);
+}
+
+// 소켓 함수 오류 출력
+void err_display(char *msg)
+{
+	LPVOID lpMsgBuf;
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)&lpMsgBuf, 0, NULL);
+	printf("[%s] %s", msg, (char *)lpMsgBuf);
+	LocalFree(lpMsgBuf);
+}
+
+// 클라이언트와 데이터 통신
+DWORD WINAPI ProcessClient(LPVOID arg)
+{
+	SOCKET client_sock = (SOCKET)arg;
+	int retval;
+	SOCKADDR_IN clientaddr;
+	int addrlen;
+	char buf[BUFSIZE+1];
+
+	// 클라이언트 정보 얻기
+	addrlen = sizeof(clientaddr);
+	getpeername(client_sock, (SOCKADDR *)&clientaddr, &addrlen);
+
+	while(1){
+		// 데이터 받기
+		retval = recv(client_sock, buf, BUFSIZE, 0);
+		if(retval == SOCKET_ERROR){
+			err_display("recv()");
+			break;
+		}
+		else if(retval == 0)
+			break;
+
+		// 받은 데이터 출력
+		buf[retval] = '\0';
+		printf("[TCP/%s:%d] %s\n", inet_ntoa(clientaddr.sin_addr),
+			ntohs(clientaddr.sin_port), buf);
+
+		// 데이터 보내기
+		retval = send(client_sock, buf, retval, 0);
+		if(retval == SOCKET_ERROR){
+			err_display("send()");
+			break;
+		}
+	}
+
+	// closesocket()
+	closesocket(client_sock);
+	printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
+		inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
+
+	return 0;
+}
+
+int main(int argc, char *argv[])
+{
+	int retval;
+
+	// 윈속 초기화
+	WSADATA wsa;
+	if(WSAStartup(MAKEWORD(2,2), &wsa) != 0)
+		return 1;
+
+	// socket()
+	SOCKET listen_sock = socket(AF_INET, SOCK_STREAM, 0);
+	if(listen_sock == INVALID_SOCKET) err_quit("socket()");
+
+	// bind()
+	SOCKADDR_IN serveraddr;
+	ZeroMemory(&serveraddr, sizeof(serveraddr));
+	serveraddr.sin_family = AF_INET;
+	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	serveraddr.sin_port = htons(SERVERPORT);
+	retval = bind(listen_sock, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
+	if(retval == SOCKET_ERROR) err_quit("bind()");
+
+	// listen()
+	retval = listen(listen_sock, SOMAXCONN);
+	if(retval == SOCKET_ERROR) err_quit("listen()");
+
+	// 데이터 통신에 사용할 변수
+	SOCKET client_sock;
+	SOCKADDR_IN clientaddr;
+	int addrlen;
+	HANDLE hThread;
+
+	while(1){
+		// accept()
+		addrlen = sizeof(clientaddr);
+		client_sock = accept(listen_sock, (SOCKADDR *)&clientaddr, &addrlen);
+		if(client_sock == INVALID_SOCKET){
+			err_display("accept()");
+			break;
+		}
+
+		// 접속한 클라이언트 정보 출력
+		printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
+			inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
+
+		// 스레드 생성
+		hThread = CreateThread(NULL, 0, ProcessClient,
+			(LPVOID)client_sock, 0, NULL);
+		if(hThread == NULL) { closesocket(client_sock); }
+		else { CloseHandle(hThread); }
+	}
+
+	// closesocket()
+	closesocket(listen_sock);
+
+	// 윈속 종료
+	WSACleanup();
+	return 0;
+}
+
+~~~
 
 
 
+## 3. 스레드 동기화
+
+### 1. 스레드 동기화 필요성
+
+멀티스레드를 이용하는 프로그램에서 스레드 두 개 이상이 공유데이터에 접근할때 발생할 수 있다. 이때 발생할 수 있는 문제들을 해결하기 위한 일련의 작업을 스레드 동기화라 한다. 윈도우 운영체제는 프로그래머가 상황에 따라 적절한 동기화 기법을 선택할 수 있도록 다양한 API함수를 제공한다.
+
+1. 임계영역(critical section) : 공유 자원에 대해 오직 한 스레드에 접근만 허용한다.(한 프로세스에 속한 스레드 간에 사용 가능)
+2. 뮤텍스(mutex) : 공유자원에 대해 오직 한 스레드의 접근만 허용한다.(서로 다른 프로세스에 속한 스레드 간에도 사용 가능)
+3. 이벤트(event) : 사건 발생을 알려 대기중인 스레드를 깨운다.
+4. 세마포어(semaphore) : 한정된 개수의 자원에 여러 스레드가 접근할 때 자원을 사용할 수 있는 스레드 개수를 제한한다.
+5. 대기 가능 타이머(waitable timer) : 정해진 시간이 되면 대기 중인 스레드를 깨운다.
+
+### 2. 스레드 동기화 기본 개념
+
+스레드 동기화가 필요한 경우는 크게 다음 두 경우다.
+
+1. 둘 이상의 스레드가 공유 자원에 접근한다.
+2. 한 스레드가 작업을 완료한 후, 기다리는 다른 스레드에 알려준다.
+
+두 경우 모두 각 스레드가 독립적으로 실행하지 않고 다른 스레드와의 상호 작용을 토대로 자신의 작업을 진행한다는 특징이 있다. 스레드 동기화를 하려면 스레드가 상호 작용해야하므로 스레드간의 매개체가 필용하다. 두 스레드가 동시에 진행하면 안 되는 상황이 있을때, 두 스레드는 매개체를 통해 진행 가능 여부를 판단하고 이에 근거해 자신의 실행을 계속할지를 결정한다.
+
+윈도우 운영체제에서 이러한 매개체 역할을 할 수 있는 것들을 통틀어 동기화 객체(synchronization object)라 한다. 동기화 객체의 특징을 요약하면 다음과 같다.
+
+1. Create()함수를 호출하면 커널(kernel : 운영체제의 핵심 부분을 뜻함) 메모리 영역에 동기화 객체가 생성됭고, 이에 접근할 수 있는 핸들(HANDELE 타입)이 리턴된다.
+2. 평소에는 비신호 상태(non-signaled state)로 있다가 특정 조건이 만족되면 신호 상태(signaled state)가 된다. 비신호 상태에서 신호 상태로 변화 여부는 Wait*()함수를 사용해야 감지할 수 있다.
+3. 사용이 끝나면 CloseHandle()함수로 호출한다.
+
+Wait*()함수는 동기화를 위한 필수 함수로, 자주 사용하는 WaitForSingleObject()와 WaitForMultipleObjects()함수는 1절에서 이미 학습했다. 동기화 객체를 학습할 때는 비신호 > 신호, 신호 > 비신호 상태 변화 조건을 잘 이해해야 하며, 상황에 맞게 Wait*()함수를 사용할 수 있도록 연습해야 한다.
+
+### 3. 임계영역
+
+임계영역(critical section)은 둘 이상의 스레드가 공유 자원에 접근할 때, 오직 한 스레드만 접근을 허용해야 하는 경우에 사용한다. 임계 영역은 대표적인 스레드 동기화 기법이지만, 생성과 사용법이 달라서 소개한 동기화 객체로 분류하지는 않는다. 대표적인 특징을 정리하면 다음과 같다.
+
+- 임계영역은 일반 동기화 객체와 달리 개별 프로세스의 유저(user) 메모리 영역에 존재하는 단순한 구조체다. 따라서 다른 프로세스가 접근할 수 없으므로 한 프로세스에 속한 스레드간 동기화에만 사용한다.
+- 일반 동기화 객체보다 빠르고 효율적이다.
+
+임계영역 예제
+
+~~~c++
+
+#include <windows.h>
+
+CRITICAL_SECTION cs; // 1
+
+DWORD WINAPI MyThread1(LPVOID arg){
+	EnterCriticalSection(&cs); // 3
+	//공유자원 접근
+	LeaveCriticalSection(&cs); // 4
+}
+DWORD WINAPI MyThread2(LPVOID arg){
+	EnterCriticalSection(&cs); // 3
+	//공유자원 접근
+	LeaveCriticalSection(&cs); // 4
+}
+int main(int argc, char *argv[])
+{
+	InitializerCriticalSection(&cs); // 2
+	// 스레드를 두 개 이상 생성해 작업을 진행한다.
+	// 생성한 모든 스레드가 종료될 때 까지 기다린다.
+	DeleteCriticalSection(&cs) // 5
+}
+
+~~~
+
+1. CRITICAL_SECTION 구조체 변수를 전역변수로 선안한다. 일반 동기화 객체는  Create*()함수를 호출해 커널 메모리 영역에 생성하지만, 임계 영역은 유저 메모리 영역에(대게는 전역 변수 형태로) 생성한다.
+2. 임계 영역을 사용하기 전에 InitializeCriticalSection()함수를 호출해 초기화한다.
+3. 공유 자원에 접근하기 전에 EnterCriticalSection()함수를 호출한다. 공유 자원을 사용하고 있는 스레드가 없다면 EnterCriticalSection()함수는 곧바로 리턴한다. 하지만 공유 자원을 사용하고 있는 스레드가 있다면 EnterCriticalSection()함수는 리턴하지 못하고 스레드는 대기상태가 된다.
+4. 공유 자원을 사용을 마치면 LeaveCriticalSection() 함수를 호출한다.이 때 EnterCriticalSection()함수에서 대기중인 스레드가 있다면 하나만 선택되어 깨어난다.
+5. 임계 영역을 사용하는 모든 스레드가 종료하면 DeleteCriticalSection() 함수를 호출해 삭제한다.
+
+임계 영역을 사용하지 않을경우 생길 수 있는 문제 예제
+
+~~~c++
+
+#include <windows.h>
+#include <stdio.h>
+
+#define MAXCNT 100000000
+int g_count = 0;
+CRITICAL_SECTION cs;
+
+DWORD WINAPI MyThread1(LPVOID arg)
+{
+	for(int i=0; i<MAXCNT; i++){
+		EnterCriticalSection(&cs);
+		g_count+=2;
+		LeaveCriticalSection(&cs);
+	}
+	return 0;
+}
+
+DWORD WINAPI MyThread2(LPVOID arg)
+{
+	for(int i=0; i<MAXCNT; i++){
+		EnterCriticalSection(&cs);
+		g_count-=2;
+		LeaveCriticalSection(&cs);
+	}
+	return 0;
+}
+
+int main(int argc, char *argv[])
+{
+	// 임계 영역 초기화
+	InitializeCriticalSection(&cs);
+	// 두 개의 스레드 생성
+	HANDLE hThread[2];
+	hThread[0] = CreateThread(NULL, 0, MyThread1, NULL, 0, NULL);
+	hThread[1] = CreateThread(NULL, 0, MyThread2, NULL, 0, NULL);
+	// 두 개의 스레드 종료 대기
+	WaitForMultipleObjects(2, hThread, TRUE, INFINITE);
+	// 임계 영역 삭제
+	DeleteCriticalSection(&cs);
+	// 결과 출력
+	printf("g_count = %d\n", g_count);	
+	return 0;
+}
+
+~~~
 
 
+### 4. 이벤트
 
+이벤트(Event)는 사건 발생을 다른 스레드에 알리는 동기화 기법이다. 예를 들면 한 스레드가 작업을 완료한 후 기다리고 있는 다른 스레드에게 알릴 때 사용할 수 있다.
 
+이벤트를 사용하는 절차는 다음과 같다.
 
+1. 이벤트를 비신호 상태로 생성한다.
+2. 한 스레드가 작업을 진행하고, 나머지 스레드는 이벤트에 대해 Wait*()함수를 호출해 이벤트가 신호 상태가 될 때까지 대기한다(sleep).
+3. 스레드가 작업을 완료하면 이벤트를 신호 상태로 바꾼다.
+4. 기다리고 있던 스레드 중 하나 혹은 전부가 깨어난다.(wakeup)
 
+이벤트는 대표적인 동기화 객체로, 신호와 비신화 두 가지 상태를 가진다. 또한 상태를 변경할 수 있도록 다음과 같은 함수가 제공된다.
 
+~~~c++
 
+BOOL SetEvent(HANDLE nEvent); // 비신호 상태 > 신호상태
+BOOL ResetEvent(HANDLE nEvent); // 신호 상태 > 비신호상태
 
+~~~
 
+이벤트는 특성에 따라 다음 두 종류가 있으므로, 용도에 맞게 선택할 수 있어야 한다.
 
+- 자동리셋(auto-reset)이벤트 : 이벤트를 신호 상태로 바꾸면, 기다리는 스레드 중 하나만 깨운 후 자동으로 비신호 상태가 된다. 따라서 자동 리셋 이벤트에 대해서는 ResetEvent()함수를 사용할 필요가 있다.
+- 수동리셋(manual-reset)이벤트 : 이벤트를 신호 상태로 바꾸면, 기다리는 스레드를 모두 깨운 후 계속 신호 상태를 유지한다. 자동 리셋 이벤트와 달리 비신호 상태로 바꾸려면 명시적으로 ResetEvent()함수를 호출해야 한다.
 
+이벤트 생성 함수는 다음과 같다.
 
+~~~c++
 
+HANDLE CreateEvent(
+	LPSECURITY_ATTRIBUTES lpEventAttributes, // 1
+	BOOL bManual Reset, // 2
+	BOOL bInitialState, //3
+	LPCTSTR lpName //4
+);
 
+~~~
 
+1. lpEventAttributes : 핸들 상속(handle inheritance)과 보안 디스크립터(security descpriptor)관련 구조체로, 대부분은 기본값인 NULL을 사용하면 된다.
+2. bManual Reset : TRUE면 수동 리셋 FALSE면 자동 리셋 이벤트가 된다
+3. bInitialState : TRUE면 신호 FALSE면 비신호 상태로 시작한다.
+4. lpName : 이벤트에 부여할 이름이다. NULL을 사용하면 이름없는(anonymous) 이벤트가 생성되므로 같은 프로세스에 속한 스레드 간 동기화에만 사용할 수 있다. 서로 다른 프로세스에 속한 스레드 간 동기화를 하려면 같은 이름으로 생성해야 한다. 예를 들어, 프로세스 P1과 프로세스 P2에 각각 속한 두 스레드가 이벤트를 이용한 동기화를 하려면 다음과 같이 CreateEvent()함수를 호출하게 된다. 둘 중 먼저 CreateEvent()함수를 호출한 쪽은 이벤트를 생성(Create)하게 되고, 다른 쪽은 이벤트를 열게(open)된다.
 
+이벤트 사용 예제
 
+~~~c++
+#include <windows.h>
+#include <stdio.h>
 
+#define BUFSIZE 10
 
+HANDLE hReadEvent;
+HANDLE hWriteEvent;
+int buf[BUFSIZE];
 
+DWORD WINAPI WriteThread(LPVOID arg)
+{
+	DWORD retval;
 
+	for(int k=1; k<=500; k++){
+		// 읽기 완료 대기
+		retval = WaitForSingleObject(hReadEvent, INFINITE);
+		if(retval != WAIT_OBJECT_0) break;
+
+		// 공유 버퍼에 데이터 저장
+		for(int i=0; i<BUFSIZE; i++)
+			buf[i] = k;
+
+		// 쓰기 완료 알림
+		SetEvent(hWriteEvent);
+	}
+
+	return 0;
+}
+
+DWORD WINAPI ReadThread(LPVOID arg)
+{
+	DWORD retval;
+
+	while(1){
+		// 쓰기 완료 대기
+		retval = WaitForSingleObject(hWriteEvent, INFINITE);
+		if(retval != WAIT_OBJECT_0) break;
+
+		// 읽은 데이터 출력
+		printf("Thread %4d: ", GetCurrentThreadId());
+		for(int i=0; i<BUFSIZE; i++)
+			printf("%3d ", buf[i]);
+		printf("\n");
+		
+		// 버퍼 초기화
+		ZeroMemory(buf, sizeof(buf));
+
+		// 읽기 완료 알림
+		SetEvent(hReadEvent);
+	}
+
+	return 0;
+}
+
+int main(int argc, char *argv[])
+{
+	// 두 개의 자동 리셋 이벤트 생성(각각 비신호, 신호 상태)
+	hWriteEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	if(hWriteEvent == NULL) return 1;
+	hReadEvent = CreateEvent(NULL, FALSE, TRUE, NULL);
+	if(hReadEvent == NULL) return 1;
+	
+	// 세 개의 스레드 생성
+	HANDLE hThread[3];
+	hThread[0] = CreateThread(NULL, 0, WriteThread, NULL, 0, NULL);
+	hThread[1] = CreateThread(NULL, 0, ReadThread, NULL, 0, NULL);
+	hThread[2] = CreateThread(NULL, 0, ReadThread, NULL, 0, NULL);
+	
+	// 세 개의 스레드 종료 대기
+	WaitForMultipleObjects(3, hThread, TRUE, INFINITE);
+	
+	// 이벤트 제거
+	CloseHandle(hWriteEvent);
+	CloseHandle(hReadEvent);
+	return 0;
+}
+~~~
 
 
 
