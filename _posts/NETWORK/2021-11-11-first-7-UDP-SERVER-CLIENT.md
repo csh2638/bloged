@@ -51,6 +51,360 @@ UDP 서버-클라이언트가 통신하는 일반적인 상황이다. 'UDP 클�
 
 ### UDP에 대한 오해
 
+UDP는 신뢰성 없는 데이터 전송을 하므로 데이터 오류를 체크하지 않을것이라 생각한다면 안된다. UDP는 TCP처럼 체크섬(checksum)을 이용해 데이터 오류를 체크한다. 그렇다면 TCP는 신뢰성 있는 데이터 전송을 하는데 왜 UDP는 그렇지 못할까? 답은 UDP에서 데이터 재전송과 데이터 순서 유지 작업을 하지 않기 때문이다. UDP는 도착한 데이터에 오류가 있다고 판단하면 이 데이터를 응용 프로그램에 전달하지 않고 그대로 삭제해 버린다. 따라서 응용 프로그램은 데이터에 오류가 있어 버려졌다는 사실을 알지 못한다. 또한 TCP는 데이터 순서 유지를 위해 각 바이트마다 번호를 부여하지만 UDP는 비슷한 기능을 제공하지 않는다.
+
+UDP를 이용하는 응용 프로그램에서 신뢰성 있는 데이터 전송을 하려면 데이터 재전송 + 데이터 순서 유지라는 두 가지 기능을 유지해야 한다. 또한 UDP를 이용해 대량의 대이터(bulk data)를 주고 받으려면 흐름 제어 기능(상대의 여유 버퍼 용량에 따라 데이터 송신량을 조절함)도 구현하는 것이 좋다. UDP에는 TCP와 같은 흐름 제어 기능이 없어서 통신 상대의 현재 상태와 관계 없이 대량의 데이터를 보낼 경우, 여유 버퍼 공간의 부족으로 데이터가 버려질 수 있다.
+
+
+### 3. UDP-서버 클라이언트 실습
+
+- UDP 서버 : 클라이언트가 보낸 데이터를 받고(recvfrom), 이를 문자열로 간주해 무조건 화면에 출력한다(printf). 그리고 받은 데이터를 변경 없이 다시 클라이언트에 보낸다(sendto). 받은 데이터를 그대로 다시 보낸다는 뜻으로 에코서버(echo server)라고 부른다.
+- UDP 클라이언트 : 사용자가 키보드로 입력한(fgets) 문자열을 서버에 보낸다(sendto). 서버가 데이터를 그대로 돌려보내면, 클라이언트는 이를 받아(recvfrom) 화면에 출력한다(printf). 에코 서버와 통신한다는 의미로 에코 클라이언트(echo client)라고 부른다.
+
+
+### UDP SERVER
+~~~c++
+
+#pragma comment(lib, "ws2_32")
+#include <winsock2.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#define SERVERPORT 9000
+#define BUFSIZE    512
+
+// 소켓 함수 오류 출력 후 종료
+void err_quit(char *msg)
+{
+	LPVOID lpMsgBuf;
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)&lpMsgBuf, 0, NULL);
+	MessageBox(NULL, (LPCTSTR)lpMsgBuf, msg, MB_ICONERROR);
+	LocalFree(lpMsgBuf);
+	exit(1);
+}
+
+// 소켓 함수 오류 출력
+void err_display(char *msg)
+{
+	LPVOID lpMsgBuf;
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)&lpMsgBuf, 0, NULL);
+	printf("[%s] %s", msg, (char *)lpMsgBuf);
+	LocalFree(lpMsgBuf);
+}
+
+int main(int argc, char *argv[])
+{
+	int retval;
+
+	// 윈속 초기화
+	WSADATA wsa;
+	if(WSAStartup(MAKEWORD(2,2), &wsa) != 0)
+		return 1;
+
+	// socket()
+	SOCKET sock = socket(AF_INET, SOCK_DGRAM, 0);
+	if(sock == INVALID_SOCKET) err_quit("socket()");
+
+	// bind()
+	SOCKADDR_IN serveraddr;
+	ZeroMemory(&serveraddr, sizeof(serveraddr));
+	serveraddr.sin_family = AF_INET;
+	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	serveraddr.sin_port = htons(SERVERPORT);
+	retval = bind(sock, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
+	if(retval == SOCKET_ERROR) err_quit("bind()");
+
+	// 데이터 통신에 사용할 변수
+	SOCKADDR_IN clientaddr;
+	int addrlen;
+	char buf[BUFSIZE+1];
+
+	// 클라이언트와 데이터 통신
+	while(1){
+		// 데이터 받기
+		addrlen = sizeof(clientaddr);
+		retval = recvfrom(sock, buf, BUFSIZE, 0,
+			(SOCKADDR *)&clientaddr, &addrlen);
+		if(retval == SOCKET_ERROR){
+			err_display("recvfrom()");
+			continue;
+		}
+
+		// 받은 데이터 출력
+		buf[retval] = '\0';
+		printf("[UDP/%s:%d] %s\n", inet_ntoa(clientaddr.sin_addr),
+			ntohs(clientaddr.sin_port), buf);
+
+		// 데이터 보내기
+		retval = sendto(sock, buf, retval, 0,
+			(SOCKADDR *)&clientaddr, sizeof(clientaddr));
+		if(retval == SOCKET_ERROR){
+			err_display("sendto()");
+			continue;
+		}
+	}
+
+	// closesocket()
+	closesocket(sock);
+
+	// 윈속 종료
+	WSACleanup();
+	return 0;
+}
+
+~~~
+
+### UDP CLIENT
+
+~~~c++
+
+#pragma comment(lib, "ws2_32")
+#include <winsock2.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#define SERVERIP   "127.0.0.1"
+#define SERVERPORT 9000
+#define BUFSIZE    512
+
+// 소켓 함수 오류 출력 후 종료
+void err_quit(char *msg)
+{
+	LPVOID lpMsgBuf;
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)&lpMsgBuf, 0, NULL);
+	MessageBox(NULL, (LPCTSTR)lpMsgBuf, msg, MB_ICONERROR);
+	LocalFree(lpMsgBuf);
+	exit(1);
+}
+
+// 소켓 함수 오류 출력
+void err_display(char *msg)
+{
+	LPVOID lpMsgBuf;
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)&lpMsgBuf, 0, NULL);
+	printf("[%s] %s", msg, (char *)lpMsgBuf);
+	LocalFree(lpMsgBuf);
+}
+
+int main(int argc, char *argv[])
+{
+	int retval;
+
+	// 윈속 초기화
+	WSADATA wsa;
+	if(WSAStartup(MAKEWORD(2,2), &wsa) != 0)
+		return 1;
+
+	// socket()
+	SOCKET sock = socket(AF_INET, SOCK_DGRAM, 0);
+	if(sock == INVALID_SOCKET) err_quit("socket()");
+
+	// 소켓 주소 구조체 초기화
+	SOCKADDR_IN serveraddr;
+	ZeroMemory(&serveraddr, sizeof(serveraddr));
+	serveraddr.sin_family = AF_INET;
+	serveraddr.sin_addr.s_addr = inet_addr(SERVERIP);
+	serveraddr.sin_port = htons(SERVERPORT);
+
+	// 데이터 통신에 사용할 변수
+	SOCKADDR_IN peeraddr;
+	int addrlen;
+	char buf[BUFSIZE+1];
+	int len;
+
+	// 서버와 데이터 통신
+	while(1){
+		// 데이터 입력
+		printf("\n[보낼 데이터] ");
+		if(fgets(buf, BUFSIZE+1, stdin) == NULL)
+			break;
+
+		// '\n' 문자 제거
+		len = strlen(buf);
+		if(buf[len-1] == '\n')
+			buf[len-1] = '\0';
+		if(strlen(buf) == 0)
+			break;
+
+		// 데이터 보내기
+		retval = sendto(sock, buf, strlen(buf), 0,
+			(SOCKADDR *)&serveraddr, sizeof(serveraddr));
+		if(retval == SOCKET_ERROR){
+			err_display("sendto()");
+			continue;
+		}
+		printf("[UDP 클라이언트] %d바이트를 보냈습니다.\n", retval);
+
+		// 데이터 받기
+		addrlen = sizeof(peeraddr);
+		retval = recvfrom(sock, buf, BUFSIZE, 0,
+			(SOCKADDR *)&peeraddr, &addrlen);
+		if(retval == SOCKET_ERROR){
+			err_display("recvfrom()");
+			continue;
+		}
+
+		// 송신자의 IP 주소 체크
+		if(memcmp(&peeraddr, &serveraddr, sizeof(peeraddr))){
+			printf("[오류] 잘못된 데이터입니다!\n");
+			continue;
+		}
+
+		// 받은 데이터 출력
+		buf[retval] = '\0';
+		printf("[UDP 클라이언트] %d바이트를 받았습니다.\n", retval);
+		printf("[받은 데이터] %s\n", buf);
+	}
+
+	// closesocket()
+	closesocket(sock);
+
+	// 윈속 종료
+	WSACleanup();
+	return 0;
+}
+
+~~~
+
+## UDP 서버-클라이언트 분석
+
+
+UDP 소켓이 TCP 소켓과 다른점은 데이터 재전송과 흐름 제어를 하지 않으므로 송신 버퍼가 없다는 점이다.
+
+### 1. UDP 서버-클라이언트 모델
+
+UDP 서버
+
+1. socket()함수로 소켓을 생성함으로써 사용할 프로토콜을 결정한다.
+2. bind()함수로 지역 IP주소와 지역 포트 번호를 결정한다.
+3. 클라이언트가 보낸 데이터를 recvfrom()함수로 받는다. 이때 원격 IP 주소와 원격 포트 번호, 즉 클라이언트의 주소를 알 수 있다.
+4. 받은 데이터를 처리한 결과를 sendto()함수로 보낸다.
+5. 모든 작업을 마치면 closesocket()함수로 소켓을 닫는다.
+
+UDP 클라이언트
+
+1. socket()함수로 소켓을 생성함으로써 사용할 프로토콜을 결정한다.
+2. sendto()함수로 서버에 데이터를 보낸다. 이 때 원격 IP주소와 원격 포트번호는 물론, 지역 IP 주소와 지역 포트번호도 결정된다.
+3. 서버가 처리해 보낸 데이터를 recvfrom()함수로 받는다.
+4. 모든 작업을 마치면 closesocket()함수로 소켓을 닫는다.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
