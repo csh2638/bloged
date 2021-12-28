@@ -38,10 +38,7 @@ jsp 페이지 디렉티브
 
 ~~~
 <%@ page language="java" contentType="text/html; charset=EUC-KR"pageEncoding="EUC-KR"%>
-
 ~~~
-    
-위 코드와 같이 jsp 내에서 <%></%>로 둘러쌓인게 자바로 인식함.
 
 |속성|설명|기본 값|
 |:---:|:---:|:---:|
@@ -55,3 +52,88 @@ jsp 페이지 디렉티브
 |errorPage|현재 페이지에서 에러가 발생될때 보여지는페이지의 여부를 지정. true일때 여러페이지,false 일때 여러페이지 아님|false|
 |pageEncoding|jsp 페이지 자체의 캐릭터 인코딩 지정|-|
  
++ include
+
+~~~jsp
+<%@ page language="java" contentType="text/html; charset=EUC-KR"
+    pageEncoding="EUC-KR"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="EUC-KR">
+<title>Insert title here</title>
+</head>
+<body>
+	<center>
+		<table width = "600" border = "1">
+		<!--Top-->
+		<tr height = "150">
+			<td width = "600" align = "center">
+			<%@ include file = "Top.jsp" %>
+		</td>
+	</tr>
+	
+	<!--Center-->
+	<tr height ="400">
+		<td width = "600" align = "center">
+		<img alt="" src="img/mark.gif" width = "400" height = "300">
+		</td>
+	</tr>
+	
+	<!--Bottom-->
+	<tr height = "100">
+			<td width = "600" align = "center">
+			<%@ include file = "Bottom.jsp" %>
+		</td>
+		
+	</table>
+	</center>
+</body>
+</html>
+~~~
+
+
+
+스크립트릿
+
+<% 
+    자바코드  
+%>
+
+스크립트릿에서 선언한 변수는 JSP 페이지가 서블릿으로 변환될 때 지역변수로 사용된다.
+
+
+
+선언문
+
+<%!    
+    자바코드
+%>
+
+선언문의 변수는 서블릿으로 변환될 때 멤버변수로 변환되고 선언문에서의 메소드는 서블릿에서 메소드로 만들어진다.
+
+
+표현식
+
+<%= 
+    자바코드
+%>
+
+jsp페이지에서 자바의 System.out.println과 유사하게 사용
+
+
+jsp 페이지 내장객체
+
+자주 사용하는 객체
+
+|내장객체|설명|
+|:---:|:---:|
+|request|웹 브라우저의 요청 정보를 저장하고 있는 객체|
+|response|웹 브라우저의 요청에 대한 응답 정보를 저장하고 있는 객체|
+|out|jsp 페이지에 출력할 내용을 가지고 있는 출력 스트림 객체|
+|session|하나의 웹 브라우저의 정보를 유지하기 위한 세션 정보를 저장하고 있는 객체 |
+|application|웹 어플리케이션 전체 브라우저에서 공유할 수 있는 데이터를 저장하는 객체|
+|pagecontext|jsp페이지에 대한 정보를 저장하고 있는 객체|
+|page|jsp 페이지를 구현한 자바 클래스 객체|
+|config|jsp 페이지에 대한 설정 정보를 저장하고 있는 객체|
+|exception|jsp 페이지에서 예외가 발생한 경우에 사용되는 객체|
